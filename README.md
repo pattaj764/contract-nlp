@@ -1,4 +1,4 @@
-# Contract Risk Analyzer
+# Systematic Highlighting of Agreement Flaws and Terms (SHAFT)
 
 A diligence-oriented tool that ingests commercial contracts from the Contract Understanding Atticus Dataset (CUAD) v1, applies a legal risk rubric across 41 clause categories, and produces three outputs:
 
