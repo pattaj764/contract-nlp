@@ -3,7 +3,7 @@
 A diligence-oriented tool that ingests commercial contracts from the Contract Understanding Atticus Dataset (CUAD) v1, applies a legal risk rubric across 41 clause categories, and produces three outputs:
 
 - A SQLite analysis database for ad-hoc querying
-- Per-contract PDF reports built with LaTeX
+- Per-contract PDF reports
 - An interactive dashboard with corpus, contract, and group views
 
 > **Not legal advice.** This tool flags clauses for attorney review. It does not opine on whether a clause is favorable or unfavorable to any party and is not a substitute for qualified legal analysis.
@@ -31,7 +31,7 @@ A diligence-oriented tool that ingests commercial contracts from the Contract Un
 
 Contract review is one of the most time-consuming tasks in legal practice. A paralegal or associate reviewing a stack of commercial agreements is typically looking for the same set of clauses over and over: is there a cap on liability, does the contract have a change-of-control provision, who owns the intellectual property created under the agreement, etc.
 
-This project automates the first pass, reading every contract in the CUAD corpus, scoring each one against a diligence rubric, and producing outputs that let a reviewer see the "shape" of the deal quicker. While this tool does not replace legal judgment, it can tell a reviewer where to look.
+This project automates the first pass, reading every contract in the CUAD corpus, scoring each one against a diligence rubric, and producing outputs that let a reviewer see the important parts of the deal quicker. While this tool does not replace legal judgment, it can tell a reviewer where to begin looking.
 
 The project was built as a portfolio piece demonstrating the intersection of programming and legal reasoning: the risk rubric is drawn from the same categories that experienced attorneys identified as important in contract review, and the scoring engine translates those categories into explicit, auditable rules.
 
@@ -88,7 +88,7 @@ The JSON is derived from the CSV, per the CUAD documentation. Both are used. The
 
 ## Risk Rubric
 
-The rubric is diligence-oriented. Every finding answers one question: *should a reviewer look at this?* Findings are ranked in three severity tiers.
+The rubric is diligence-oriented, with every finding determining if a clause merits review. Findings are ranked in three severity tiers.
 
 ### Scoring
 
@@ -375,13 +375,13 @@ ORDER BY parts DESC;
 
 A few choices worth documenting for anyone reading the code.
 
-**Diligence-oriented, not party-oriented.** The rubric flags items for review. It does not attempt to determine whether a clause is favorable to one party. Party orientation would require knowing which side we represent, which the corpus does not encode.
+The rubric flags items for review, it does not attempt to determine whether a clause is favorable to one party. Party orientation would require knowing which side we represent, which the corpus does not encode.
 
-**Absence rubric excludes restrictive clauses.** Categories such as `Non-Compete` and `Exclusivity` are scored only when present. Their absence is the legal default and produces no finding.
+**Absence rubric excludes restrictive clauses.** Categories such as `Non-Compete` and `Exclusivity` are scored only when present as their absence is the standard and produces no finding.
 
 **Presence scoring limited to one extraction per category.** For `Non-Compete`, duration is extracted and worldwide scope is flagged. Other restrictive categories record presence and defer detailed analysis to the reviewer. The reasoning is that structured extraction from legal prose is prone to confident error, and "present, see clause" is more honest.
 
-**Multi-part contracts are annotated, not merged.** Thirty-five contracts in the corpus are fragments of larger agreements. Their absence findings carry a caveat: absence may reflect content in a sibling part. Merging parts would require re-offsetting spans and deciding how to deduplicate overlapping labels, which is a larger change deferred to the roadmap.
+**Multi-part contracts are annotated.** Thirty-five contracts in the corpus are fragments of larger agreements. Their absence findings carry the caveat that absence may reflect content in a sibling part. Merging parts would require re-offsetting spans and deciding how to de-duplicate overlapping labels, which is a larger change deferred to the roadmap.
 
 **Value answers prefer the CSV, spans prefer the JSON.** The JSON has character offsets and is the only source of span text. The CSV has normalized answers for date and entity categories. Both are loaded and joined on `(contract_id, category)`.
 
@@ -403,7 +403,7 @@ A few choices worth documenting for anyone reading the code.
 
 **Corpus bias.** EDGAR contracts are more heavily negotiated and more complex than the general population of commercial contracts. The tool's outputs reflect that bias. Findings on this corpus may not generalize to simpler agreements.
 
-**Rule-based only.** The current rubric uses regex and structural features. No machine-learning classifier is trained. This is deliberate: rule-based findings are auditable, and every threshold or pattern is documented in the rule modules.
+**Rule-based only.** The current rubric uses regex and structural features. No machine-learning classifier is trained. This is deliberate, rule-based findings are auditable and every threshold or pattern is documented in the rule modules.
 
 ---
 
@@ -438,6 +438,6 @@ Copyright (c) 2026 Jack Pattarini
 
 **Underlying contracts:** Public SEC EDGAR filings. The Atticus Project makes no representations or warranties regarding the license status of the underlying contracts.
 
-**Intended use:** Tools to aid legal professionals. Not a substitute for legal advice. Findings should be reviewed by qualified counsel before any action is taken.
+**Intended use:** SHAFT is a decision support tool for legal professionals and researchers. Findings should be reviewed by qualified counsel before any action is taken.
 
 **Not permitted:** Use of this tool as the sole input for contract drafting, contract management, dispute resolution, or the provision of legal advice.
