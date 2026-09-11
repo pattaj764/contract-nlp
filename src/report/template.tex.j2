@@ -1,0 +1,252 @@
+\documentclass[11pt,letterpaper]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+\usepackage{tcolorbox}
+
+% ---------- Colors ----------
+\definecolor{high}{RGB}{200,40,40}
+\definecolor{med}{RGB}{200,130,0}
+\definecolor{low}{RGB}{60,130,60}
+\definecolor{neutral}{RGB}{90,90,90}
+\definecolor{lightgray}{RGB}{235,235,235}
+\definecolor{calloutbg}{RGB}{248,246,232}
+\definecolor{calloutborder}{RGB}{180,175,140}
+\definecolor{redactbg}{RGB}{245,235,235}
+\definecolor{redactborder}{RGB}{190,140,140}
+
+% ---------- Hyperref ----------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=neutral,
+    urlcolor=neutral,
+    pdfborder={0 0 0}
+}
+
+% ---------- Header / footer ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{neutral}{<{ short_id | tex_escape }>}}
+\fancyhead[R]{\small\textcolor{neutral}{Contract Risk Report}}
+\fancyfoot[C]{\small\textcolor{neutral}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ---------- Section formatting ----------
+\titleformat{\section}{\large\bfseries\color{neutral}}{}{0em}{}
+\titlespacing*{\section}{0pt}{1.2em}{0.4em}
+
+% ---------- Severity macros ----------
+\newcommand{\sevhigh}[1]{\textcolor{high}{\textbf{#1}}}
+\newcommand{\sevmed}[1]{\textcolor{med}{\textbf{#1}}}
+\newcommand{\sevlow}[1]{\textcolor{low}{\textbf{#1}}}
+
+% ---------- Callout ----------
+% tcolorbox handles lists, paragraph breaks, and nested content reliably.
+\newtcolorbox{calloutbox}[1]{
+    colback=calloutbg,
+    colframe=calloutborder,
+    title=#1,
+    fonttitle=\bfseries,
+    boxrule=0.5pt,
+    arc=2pt,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+    breakable
+}
+
+\begin{document}
+
+% ============================================================
+% Title block
+% ============================================================
+\begin{center}
+{\LARGE\bfseries Contract Risk Report}\\[0.4em]
+{\large <{ contract_id | tex_escape }>}\\[0.3em]
+{\small\textcolor{neutral}{Generated <{ generated_at }>}}
+\end{center}
+\vspace{0.2em}
+\hrule
+\vspace{0.8em}
+
+% ============================================================
+% Executive summary
+% ============================================================
+\section*{Executive Summary}
+
+<{ summary_sentence }>
+
+\vspace{0.6em}
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Score} & \textbf{Liability} & \textbf{High} & \textbf{Medium} & \textbf{Low} \\
+\midrule
+<{ score }> / 100 & <{ liability_display }> & <{ n_high }> & <{ n_medium }> & <{ n_low }> \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ============================================================
+% Liability exposure
+% ============================================================
+\section*{Liability Exposure}
+
+<{ liability_note }>
+
+% ============================================================
+% Lifecycle
+% ============================================================
+\section*{Contract Lifecycle}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Component} & \textbf{Value} \\
+\midrule
+Agreement Date    & <{ lc.agreement_date or "not specified" }> \\
+Effective Date    & <{ lc.effective_date or "not specified" }> \\
+Expiration Date   & <{ lc.expiration_date or "not specified" }> \\
+Renewal Term      & <{ lc.renewal_term or "not specified" }> \\
+Notice Period     & <{ lc.notice_period or "not specified" }> \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\textit{<{ lc.narrative }>}
+
+<< if lc.missing or lc.missing_but_span_present >>
+\vspace{0.4em}
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+<< if lc.missing >>
+\item \textbf{Not present:} <{ lc.missing | join(", ") | tex_escape }>
+<< endif >>
+<< if lc.missing_but_span_present >>
+\item \textbf{Span present but no normalized value:} <{ lc.missing_but_span_present | join(", ") | tex_escape }>
+<< endif >>
+\end{itemize}
+<< endif >>
+
+% ============================================================
+% Multi-part caveat
+% ============================================================
+<< if is_multi_part >>
+\section*{Multi-Part Agreement Notice}
+
+\begin{calloutbox}{This contract is Part <{ part_number }> of <{ n_parts }>.}
+<< if sibling_ids >>
+Its sibling contract(s) are:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt,topsep=2pt]
+<< for sib in sibling_ids >>
+\item \texttt{<{ sib | tex_escape }>}
+<< endfor >>
+\end{itemize}
+<< endif >>
+Absence findings in this report may reflect content that resides in a sibling part. See the group-level view for a combined analysis.
+\end{calloutbox}
+<< endif >>
+
+% ============================================================
+% Redaction notice
+% ============================================================
+<< if has_redactions >>
+\section*{Redaction Notice}
+
+\begin{calloutbox}{Redactions detected.}
+This contract contains approximately <{ redaction_count }> redaction marker(s). Clauses that were redacted at the SEC filing stage cannot be scored from the public text. Absence findings should be read with this in mind.
+\end{calloutbox}
+<< endif >>
+
+% ============================================================
+% Findings
+% ============================================================
+\section*{Findings}
+
+<< if not findings >>
+\textit{No findings for this contract.}
+<< else >>
+<< for f in findings >>
+\noindent
+\textbf{<{ f.category | tex_escape }>} \hfill
+<< if f.severity == "high" >>
+\sevhigh{HIGH}
+<< elif f.severity == "medium" >>
+\sevmed{MEDIUM}
+<< else >>
+\sevlow{LOW}
+<< endif >>
+\par\vspace{0.2em}
+<{ f.rationale | tex_escape }>
+<< if f.evidence >>
+\par\vspace{0.2em}
+{\small\textit{Evidence: ``<{ f.evidence | tex_escape }>''}}
+<< endif >>
+<< if f.caveat >>
+\par\vspace{0.2em}
+{\small\textcolor{neutral}{<{ f.caveat | tex_escape }>}}
+<< endif >>
+\par\vspace{0.2em}
+{\footnotesize\textcolor{neutral}{Source: <{ f.source | tex_escape }>}}
+\vspace{0.5em}
+\hrule
+\vspace{0.5em}
+<< endfor >>
+<< endif >>
+
+% ============================================================
+% Clause inventory (page 2)
+% ============================================================
+\newpage
+\section*{Clause Inventory}
+
+This contract contains <{ n_present }> of the 41 tracked clause categories.
+
+\vspace{0.6em}
+\begin{multicols}{2}
+\textbf{Present} (<{ n_present }>)\\[0.3em]
+\begin{itemize}[leftmargin=1.2em,itemsep=1pt,topsep=2pt]
+<< for c in present_categories >>
+\item <{ c | tex_escape }>
+<< endfor >>
+\end{itemize}
+
+\columnbreak
+
+\textbf{Absent} (<{ n_absent }>)\\[0.3em]
+\begin{itemize}[leftmargin=1.2em,itemsep=1pt,topsep=2pt]
+<< for c in absent_categories >>
+\item <{ c | tex_escape }>
+<< endfor >>
+\end{itemize}
+\end{multicols}
+
+% ============================================================
+% Methodology
+% ============================================================
+\section*{Methodology and Limitations}
+
+This report was generated automatically from the Contract Understanding Atticus Dataset (CUAD) v1, created by The Atticus Project and licensed under CC BY 4.0. The underlying contracts are public SEC EDGAR filings.
+
+Findings are derived from CUAD's expert clause annotations plus a diligence rubric applied to span text. The rubric flags items for attorney review; it does not constitute legal advice and does not opine on whether a clause is favorable or unfavorable to any party.
+
+Known limitations:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{CUAD date normalization.} Some normalized dates in the source dataset contain errors (day/month transposition). Date-derived lifecycle values should be verified against the original contract text.
+\item \textbf{Multi-part agreements.} <{ n_multi_part_corpus }> contracts in this corpus are fragments of larger agreements. Absence findings on those contracts are annotated accordingly.
+\item \textbf{Redactions.} <{ n_redacted_corpus }> contracts contain redaction markers. Clauses redacted at the SEC filing stage cannot be scored.
+\item \textbf{Reference date.} <{ reference_note }>
+\end{itemize}
+
+\end{document}
