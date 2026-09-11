@@ -4,7 +4,7 @@ A diligence-oriented tool that ingests commercial contracts from the Contract Un
 
 - A SQLite analysis database for ad-hoc querying
 - Per-contract PDF reports built with LaTeX
-- An interactive Streamlit dashboard with corpus, contract, and group views
+- An interactive dashboard with corpus, contract, and group views
 
 > **Not legal advice.** This tool flags clauses for attorney review. It does not opine on whether a clause is favorable or unfavorable to any party and is not a substitute for qualified legal analysis.
 
